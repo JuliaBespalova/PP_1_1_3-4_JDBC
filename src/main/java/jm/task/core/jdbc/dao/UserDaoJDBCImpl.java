@@ -32,7 +32,7 @@ public class UserDaoJDBCImpl extends Util implements UserDao {
                     null,
                     null,
                     "users",
-                    new String[] {"TABLE"}
+                    new String[]{"TABLE"}
             );
             if (!resultSet.next()) {
                 statement.execute(sql);
@@ -49,10 +49,20 @@ public class UserDaoJDBCImpl extends Util implements UserDao {
         String sql = "DROP TABLE users";
 
         try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate(sql);
-            logger.log(Level.INFO, "Таблица удалена");
+            DatabaseMetaData meta = connection.getMetaData();
+            ResultSet tables = meta.getTables(
+                    null,
+                    null,
+                    "users",
+                    new String[]{"TABLE"});
+            if (tables.next()) {
+                statement.executeUpdate(sql);
+                logger.log(Level.INFO, "Таблица удалена");
+            } else {
+                logger.log(Level.INFO, "Таблица не существует");
+            }
         } catch (SQLException e) {
-            logger.log(Level.WARNING, "Ну херня ничего не удалилось");
+            logger.log(Level.WARNING, "Ошибка ничего не удалилось");
         }
     }
 
@@ -64,7 +74,7 @@ public class UserDaoJDBCImpl extends Util implements UserDao {
             preparedStatement.setString(2, lastName);
             preparedStatement.setInt(3, age);
             preparedStatement.executeUpdate();
-            logger.log(Level.INFO, "Пользователь добавлен успешно.");
+            logger.log(Level.INFO, String.format("User с именем — %s добавлен в базу данных", name));
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Пользователь не добавлен, переделывай");
         }
@@ -98,7 +108,7 @@ public class UserDaoJDBCImpl extends Util implements UserDao {
                 user.setAge(resultSet.getByte("age"));
 
                 users.add(user);
-                logger.log(Level.INFO, "Смотри кого добавили");
+                logger.log(Level.INFO, user.toString());
             }
 
         } catch (SQLException e) {
